@@ -1,33 +1,45 @@
 name: Construire l'APK
+
 on:
   push:
     branches: [ main, master ]
   workflow_dispatch:
+
 permissions:
   contents: write
+
 jobs:
   apk:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-java@v4
+
+      - uses: actions/setup-java@v5
         with:
           distribution: temurin
           java-version: '17'
-      - uses: android-actions/setup-android@v3
-      - uses: gradle/actions/setup-gradle@v4
-        with:
-          gradle-version: '8.7'
+
+      - name: Installer Gradle et le SDK Android
+        run: |
+          wget -q https://services.gradle.org/distributions/gradle-8.7-bin.zip
+          unzip -q gradle-8.7-bin.zip -d "$HOME/gradle"
+          echo "$HOME/gradle/gradle-8.7/bin" >> "$GITHUB_PATH"
+          echo "sdk.dir=$ANDROID_HOME" > local.properties
+          yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --licenses > /dev/null || true
+
       - name: Compiler l'APK
-        run: gradle assembleRelease --no-daemon
+        run: gradle assembleRelease --no-daemon --stacktrace
+
       - name: Renommer
         run: cp app/build/outputs/apk/release/app-release.apk chef-entrepot.apk
-      - uses: actions/upload-artifact@v4
+
+      - name: Joindre l'APK au run
+        uses: actions/upload-artifact@v4
         with:
           name: chef-entrepot-apk
           path: chef-entrepot.apk
-      - uses: softprops/action-gh-release@v2
-        with:
-          tag_name: v1.0.${{ github.run_number }}
-          name: Chef d'Entrepôt 1.0.${{ github.run_number }}
-          files: chef-entrepot.apk
+
+      - name: Publier une release téléchargeable
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release create "v1.0.${{ github.run_number }}" chef-entrepot.apk --title "Chef d'Entrepôt 1.0.${{ github.run_number }}" --notes "APK à installer sur Android."
