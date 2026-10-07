@@ -1,4 +1,4 @@
-# Chef d'Entrepôt — application Android
+# Warehouse — application Android
 
 Le jeu tourne dans une WebView Android, en plein écran et hors ligne. La partie est sauvegardée sur le téléphone.
 
@@ -11,7 +11,7 @@ Le jeu tourne dans une WebView Android, en plein écran et hors ligne. La partie
      ```
      git init
      git add .
-     git commit -m "Chef d'Entrepôt"
+     git commit -m "Warehouse"
      git branch -M main
      git remote add origin https://github.com/TON-COMPTE/chef-entrepot.git
      git push -u origin main
